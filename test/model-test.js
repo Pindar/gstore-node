@@ -74,6 +74,7 @@ describe('Model', () => {
                     args: [4, 10],
                 },
             },
+            ref: { type: 'key' },
         });
 
         schema.virtual('fullname').get(() => { });
@@ -366,6 +367,29 @@ describe('Model', () => {
             function onResult(err, _entity) {
                 expect(ds.get.getCall(0).args[0].constructor.name).equal('Key');
                 expect(_entity instanceof Entity).equal(true);
+            }
+        });
+    });
+
+    describe('using populate with get()', () => {
+        let entity;
+
+        beforeEach(() => {
+            entity = { name: 'John', ref: { path: ['TEST', '1234'] } };
+            entity[ds.KEY] = ds.key(['BlogPost', 123]);
+            sinon.stub(ds, 'get').resolves([entity]);
+        });
+
+        afterEach(() => {
+            ds.get.restore();
+        });
+
+        it('reference is an array', () => {
+            return ModelInstance.get(123).then(onEntity);
+
+            function onEntity(_entity) {
+                expect(ds.get.getCall(0).args[0].constructor.name).equal('Key');
+                expect(_entity.plain().ref.length).equal(2);
             }
         });
     });
